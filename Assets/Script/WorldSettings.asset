@@ -12,19 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4490459e508af14b9d81a8d90de9406, type: 3}
   m_Name: WorldSettings
   m_EditorClassIdentifier: Assembly-CSharp::PCGLand.WorldSettings
-  seed: 1337
+  seed: 765
   chunkSize: 16
-  voxelResolution: 16
+  voxelResolution: 10
   isoLevel: 0
-  viewRadiusChunks: 5
-  verticalRadiusChunks: 2
-  uploadsPerFrame: 2
+  viewRadiusChunks: 6
+  verticalRadiusChunks: 5
+  uploadsPerFrame: 6
   groundHeight: 0
-  terrainAmplitude: 24
-  baseFrequency: 0.015
-  octaves: 5
+  terrainAmplitude: 50
+  baseFrequency: 0.01
+  octaves: 6
   lacunarity: 2
   gain: 0.5
   biomeFrequency: 0.0025
   biomeWarp: 40
+  snowColor: {r: 0.92, g: 0.93, b: 0.96, a: 1}
+  rockColor: {r: 0.45, g: 0.42, b: 0.38, a: 1}
+  grassColor: {r: 0.32, g: 0.55, b: 0.22, a: 1}
+  sandColor: {r: 0.76, g: 0.7, b: 0.45, a: 1}
+  forestColor: {r: 0.18, g: 0.4, b: 0.2, a: 1}
+  snowRockHeight: 0.55
+  sandHeight: -0.45
+  coldRockBias: 0.8
   generateColliders: 0

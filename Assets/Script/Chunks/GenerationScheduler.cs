@@ -104,6 +104,20 @@ namespace PCGLand
             }
         }
 
+        public void CancelExcept(HashSet<ChunkCoord> desired)
+        {
+            lock (_lock)
+            {
+                foreach (var kv in _inFlight)
+                {
+                    if (!desired.Contains(kv.Key))
+                    {
+                        kv.Value.Cancel();
+                    }
+                }
+            }
+        }
+
         /// <summary>主线程调用：取出一个已完成结果。</summary>
         public bool TryDequeue(out GenerationResult result) => _results.TryDequeue(out result);
 

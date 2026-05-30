@@ -463,6 +463,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PCGLand.PCGBootstrap
   settings: {fileID: 11400000, guid: e4c7315495c669943beb14c2b2e12d90, type: 2}
   viewer: {fileID: 0}
+  cameraSpeed: 30
 --- !u!4 &2005567138
 Transform:
   m_ObjectHideFlags: 0

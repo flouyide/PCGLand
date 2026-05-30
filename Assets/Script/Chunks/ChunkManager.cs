@@ -55,16 +55,19 @@ namespace PCGLand
         {
             if (!_initialized || _viewer == null) return;
 
-            ChunkCoord center = ChunkCoord.FromWorld(_viewer.position, _settings.chunkSize);
+            Vector3 loadPosition = _viewer.position;
+            loadPosition.y = _settings.groundHeight;
+            ChunkCoord center = ChunkCoord.FromWorld(loadPosition, _settings.chunkSize);
             if (!_hasCenter || !center.Equals(_center))
             {
                 _center = center;
                 _hasCenter = true;
                 RecomputeDesired();
-                EnqueueMissing();
+                _scheduler.CancelExcept(_desired);
                 UnloadOutOfRange();
             }
 
+            EnqueueMissing();
             DrainResults();
         }
 
@@ -120,8 +123,8 @@ namespace PCGLand
 
         private void DrainResults()
         {
-            int budget = _settings.uploadsPerFrame;
-            while (budget-- > 0 && _scheduler.TryDequeue(out var result))
+            int uploadsRemaining = _settings.uploadsPerFrame;
+            while (uploadsRemaining > 0 && _scheduler.TryDequeue(out var result))
             {
                 // 结果回来时可能已不再需要，或已存在 → 丢弃。
                 if (!_desired.Contains(result.Coord) || _active.ContainsKey(result.Coord))
@@ -140,6 +143,7 @@ namespace PCGLand
                 }
 
                 _active[result.Coord] = chunk;
+                uploadsRemaining--;
             }
         }
 

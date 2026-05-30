@@ -16,6 +16,9 @@ namespace PCGLand
         [Tooltip("流式加载中心；留空则自动创建一个飞行相机。")]
         public Transform viewer;
 
+        [Tooltip("相机移动速度（单位/秒）；应用到飞行相机的 moveSpeed。")]
+        public float cameraSpeed = 30f;
+
         private ChunkManager _manager;
         private Material _material;
         private int _lastSeed;
@@ -71,7 +74,9 @@ namespace PCGLand
                 cam = camGo.AddComponent<Camera>();
                 camGo.AddComponent<AudioListener>();
             }
-            if (cam.GetComponent<FlyCamera>() == null) cam.gameObject.AddComponent<FlyCamera>();
+            var fly = cam.GetComponent<FlyCamera>();
+            if (fly == null) fly = cam.gameObject.AddComponent<FlyCamera>();
+            fly.moveSpeed = cameraSpeed;
 
             cam.farClipPlane = Mathf.Max(cam.farClipPlane,
                 settings.chunkSize * (settings.viewRadiusChunks + settings.verticalRadiusChunks + 3));

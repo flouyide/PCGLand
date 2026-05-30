@@ -35,7 +35,7 @@ namespace PCGLand
 
         [Tooltip("每帧最多向 Mesh 上传多少个分块，用于平摊卡顿。")]
         [Range(1, 16)]
-        public int uploadsPerFrame = 2;
+        public int uploadsPerFrame = 6;
 
         [Header("地形 fBm")]
         [Tooltip("地表基准高度（世界 Y）。")]
@@ -61,6 +61,38 @@ namespace PCGLand
 
         [Tooltip("Biome 边界域扰动强度，避免笔直边界。")]
         public float biomeWarp = 40f;
+
+        [Header("Biome 配色")]
+        [Tooltip("雪山顶颜色（高海拔）。")]
+        public Color snowColor = new Color(0.92f, 0.93f, 0.96f);
+
+        [Tooltip("岩石颜色（高海拔/陡坡/寒冷处）。")]
+        public Color rockColor = new Color(0.45f, 0.42f, 0.38f);
+
+        [Tooltip("草原颜色（中海拔、干燥）。")]
+        public Color grassColor = new Color(0.32f, 0.55f, 0.22f);
+
+        [Tooltip("沙漠颜色（低洼）。")]
+        public Color sandColor = new Color(0.76f, 0.70f, 0.45f);
+
+        [Tooltip("森林颜色（中海拔、潮湿）。")]
+        public Color forestColor = new Color(0.18f, 0.40f, 0.20f);
+
+        [Tooltip("相对高度高于此值进入岩石/雪带（-1低洼..+1高海拔）。")]
+        [Range(0f, 1f)]
+        public float snowRockHeight = 0.55f;
+
+        [Tooltip("相对高度低于此值视为沙漠（-1低洼..+1高海拔）。")]
+        [Range(-1f, 0f)]
+        public float sandHeight = -0.45f;
+
+        [Tooltip("寒冷处草地偏向岩石的强度。")]
+        [Range(0f, 1f)]
+        public float coldRockBias = 0.8f;
+
+        [Tooltip("地形起伏归一化系数（fBm 噪声的典型峰值幅度，约 0.3~0.6）。\n用它把相对高度归一到 [-1,1] 再分带；越小则雪/沙等极端带越容易出现。")]
+        [Range(0.1f, 1f)]
+        public float reliefNormalize = 0.5f;
 
         [Header("碰撞（扩展点，默认关闭）")]
         public bool generateColliders = false;
