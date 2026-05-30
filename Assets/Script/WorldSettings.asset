@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4490459e508af14b9d81a8d90de9406, type: 3}
+  m_Name: WorldSettings
+  m_EditorClassIdentifier: Assembly-CSharp::PCGLand.WorldSettings
+  seed: 1337
+  chunkSize: 16
+  voxelResolution: 16
+  isoLevel: 0
+  viewRadiusChunks: 5
+  verticalRadiusChunks: 2
+  uploadsPerFrame: 2
+  groundHeight: 0
+  terrainAmplitude: 24
+  baseFrequency: 0.015
+  octaves: 5
+  lacunarity: 2
+  gain: 0.5
+  biomeFrequency: 0.0025
+  biomeWarp: 40
+  generateColliders: 0
