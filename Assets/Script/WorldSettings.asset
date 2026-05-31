@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PCGLand.WorldSettings
   seed: 765
   chunkSize: 16
-  voxelResolution: 10
+  voxelResolution: 14
   isoLevel: 0
   viewRadiusChunks: 6
   verticalRadiusChunks: 5
@@ -22,9 +22,14 @@ MonoBehaviour:
   groundHeight: 0
   terrainAmplitude: 50
   baseFrequency: 0.01
-  octaves: 6
+  octaves: 4
   lacunarity: 2
-  gain: 0.5
+  gain: 0.45
+  ridgedWeight: 0.447
+  ridgeSharpness: 1.6
+  ridgeFrequencyMultiplier: 1
+  domainWarpStrength: 28
+  domainWarpFrequency: 0.0035
   biomeFrequency: 0.0025
   biomeWarp: 40
   snowColor: {r: 0.92, g: 0.93, b: 0.96, a: 1}
@@ -34,5 +39,7 @@ MonoBehaviour:
   forestColor: {r: 0.18, g: 0.4, b: 0.2, a: 1}
   snowRockHeight: 0.55
   sandHeight: -0.45
-  coldRockBias: 0.8
+  coldRockBias: 0.35
+  reliefNormalize: 0.85
   generateColliders: 0
+  debugVoxelBlocks: 0

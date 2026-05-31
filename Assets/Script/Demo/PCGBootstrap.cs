@@ -19,9 +19,13 @@ namespace PCGLand
         [Tooltip("相机移动速度（单位/秒）；应用到飞行相机的 moveSpeed。")]
         public float cameraSpeed = 30f;
 
+        [Tooltip("运行时显示调参面板（按 F1 开关）；可在游戏内编辑参数并手动重建地形。")]
+        public bool showDebugUI = true;
+
         private ChunkManager _manager;
         private Material _material;
         private int _lastSeed;
+        private bool _lastDebugVoxelBlocks;
         private bool _running;
 
         private void Start()
@@ -40,13 +44,23 @@ namespace PCGLand
             if (_manager == null) _manager = gameObject.AddComponent<ChunkManager>();
 
             BuildWorld();
+            EnsureDebugUI();
             _running = true;
+        }
+
+        private void EnsureDebugUI()
+        {
+            if (!showDebugUI) return;
+            var ui = gameObject.GetComponent<SettingsDebugUI>();
+            if (ui == null) ui = gameObject.AddComponent<SettingsDebugUI>();
+            ui.Initialize(settings, this);
         }
 
         private void Update()
         {
-            // 运行时修改种子 → 整体重建（地形 fBm/Biome 参数同理可手动调用 Rebuild）。
-            if (_running && settings != null && settings.seed != _lastSeed)
+            // 运行时修改种子或调试方块开关 → 整体重建（地形 fBm/Biome 参数同理可手动调用 Rebuild）。
+            if (_running && settings != null &&
+                (settings.seed != _lastSeed || settings.debugVoxelBlocks != _lastDebugVoxelBlocks))
             {
                 BuildWorld();
             }
@@ -56,6 +70,7 @@ namespace PCGLand
         public void BuildWorld()
         {
             _lastSeed = settings.seed;
+            _lastDebugVoxelBlocks = settings.debugVoxelBlocks;
             var biome = new BiomeSampler(settings);
             var field = new FbmDensityField(settings, biome);
             var mesher = new DualContouringMesher();

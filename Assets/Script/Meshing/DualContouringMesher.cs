@@ -27,6 +27,11 @@ namespace PCGLand
 
         public MeshData Build(IDensityField field, ChunkCoord coord, WorldSettings settings, CancellationToken token)
         {
+            if (settings.debugVoxelBlocks)
+            {
+                return BuildVoxelBlocks(field, coord, settings, token);
+            }
+
             int n = settings.voxelResolution;          // 每轴 cell 数
             int cells = n + 1;                          // cell 索引 0..N（含 +1 重叠）
             int nodes = n + 2;                          // 角节点 0..N+1
@@ -147,6 +152,109 @@ namespace PCGLand
                 Triangles = tris.ToArray(),
             };
         }
+
+        // 6 个面的外法线方向（与下方 FaceCorners 一一对应）。
+        private static readonly Vector3[] FaceNormals =
+        {
+            new Vector3( 1, 0, 0), new Vector3(-1, 0, 0),
+            new Vector3( 0, 1, 0), new Vector3( 0,-1, 0),
+            new Vector3( 0, 0, 1), new Vector3( 0, 0,-1),
+        };
+
+        // 每个面的 4 个角（单位 cell 局部坐标，逆时针朝外）。
+        private static readonly Vector3[][] FaceCorners =
+        {
+            new[] { new Vector3(1,0,0), new Vector3(1,1,0), new Vector3(1,1,1), new Vector3(1,0,1) }, // +X
+            new[] { new Vector3(0,0,0), new Vector3(0,0,1), new Vector3(0,1,1), new Vector3(0,1,0) }, // -X
+            new[] { new Vector3(0,1,0), new Vector3(0,1,1), new Vector3(1,1,1), new Vector3(1,1,0) }, // +Y
+            new[] { new Vector3(0,0,0), new Vector3(1,0,0), new Vector3(1,0,1), new Vector3(0,0,1) }, // -Y
+            new[] { new Vector3(0,0,1), new Vector3(1,0,1), new Vector3(1,1,1), new Vector3(0,1,1) }, // +Z
+            new[] { new Vector3(0,0,0), new Vector3(0,1,0), new Vector3(1,1,0), new Vector3(1,0,0) }, // -Z
+        };
+
+        // 6 个面对应的邻居 cell 偏移（与 FaceNormals 对应）。
+        private static readonly int[] FaceDX = { 1, -1, 0, 0, 0, 0 };
+        private static readonly int[] FaceDY = { 0, 0, 1, -1, 0, 0 };
+        private static readonly int[] FaceDZ = { 0, 0, 0, 0, 1, -1 };
+
+        /// <summary>
+        /// 调试方块网格：每个 cell 取中心密度判定实心，实心 cell 渲为立方体，
+        /// 仅输出朝向空气邻居的外表面。邻居 cell 中心密度跨分块连续采样，
+        /// 故分块交界处的共享面会被剔除，不产生重叠双层壁。
+        /// </summary>
+        private MeshData BuildVoxelBlocks(IDensityField field, ChunkCoord coord, WorldSettings settings, CancellationToken token)
+        {
+            int n = settings.voxelResolution;
+            float cellSize = settings.chunkSize / n;
+            float iso = settings.isoLevel;
+            Vector3 origin = coord.ToWorldOrigin(settings.chunkSize);
+
+            // 覆盖 cell 索引 -1..n（共 n+2），多出的一圈用于邻居实心判定。
+            int s = n + 2;
+            var solid = new bool[s * s * s];
+            for (int ci = -1; ci <= n; ci++)
+            {
+                if (token.IsCancellationRequested) return null;
+                for (int cj = -1; cj <= n; cj++)
+                {
+                    for (int ck = -1; ck <= n; ck++)
+                    {
+                        Vector3 center = origin + new Vector3(ci + 0.5f, cj + 0.5f, ck + 0.5f) * cellSize;
+                        solid[SolidIdx(ci, cj, ck, s)] = field.Sample(center) < iso;
+                    }
+                }
+            }
+
+            var verts = new List<Vector3>();
+            var normals = new List<Vector3>();
+            var colors = new List<Color>();
+            var tris = new List<int>();
+
+            for (int ci = 0; ci < n; ci++)
+            {
+                if (token.IsCancellationRequested) return null;
+                for (int cj = 0; cj < n; cj++)
+                {
+                    for (int ck = 0; ck < n; ck++)
+                    {
+                        if (!solid[SolidIdx(ci, cj, ck, s)]) continue;
+
+                        Vector3 cellMin = origin + new Vector3(ci, cj, ck) * cellSize;
+                        Vector3 cellCenter = cellMin + new Vector3(0.5f, 0.5f, 0.5f) * cellSize;
+                        Color color = field.SampleColor(cellCenter);
+
+                        for (int f = 0; f < 6; f++)
+                        {
+                            // 邻居为实心则该面在内部，跳过。
+                            if (solid[SolidIdx(ci + FaceDX[f], cj + FaceDY[f], ck + FaceDZ[f], s)]) continue;
+
+                            Vector3[] fc = FaceCorners[f];
+                            Vector3 nrm = FaceNormals[f];
+                            int baseIdx = verts.Count;
+                            for (int v = 0; v < 4; v++)
+                            {
+                                verts.Add(cellMin + Vector3.Scale(fc[v], new Vector3(cellSize, cellSize, cellSize)));
+                                normals.Add(nrm);
+                                colors.Add(color);
+                            }
+                            tris.Add(baseIdx); tris.Add(baseIdx + 1); tris.Add(baseIdx + 2);
+                            tris.Add(baseIdx); tris.Add(baseIdx + 2); tris.Add(baseIdx + 3);
+                        }
+                    }
+                }
+            }
+
+            return new MeshData
+            {
+                Vertices = verts.ToArray(),
+                Normals = normals.ToArray(),
+                Colors = colors.ToArray(),
+                Triangles = tris.ToArray(),
+            };
+        }
+
+        // 实心网格索引：cell 索引范围 -1..n，整体 +1 偏移到 0..n+1。
+        private static int SolidIdx(int i, int j, int k, int s) => ((i + 1) * s + (j + 1)) * s + (k + 1);
 
         // 若该节点边变号，连接 4 个 cell 顶点为四边形（两个三角形）。
         private static void TryQuad(

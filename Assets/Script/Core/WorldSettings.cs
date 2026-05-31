@@ -55,6 +55,26 @@ namespace PCGLand
         [Range(0f, 1f)]
         public float gain = 0.5f;
 
+        [Header("山脊 / 坐标扰动")]
+        [Tooltip("山脊噪声与普通 fBm 的混合比例；越高山脊越尖锐、谷地越明显。")]
+        [Range(0f, 1f)]
+        public float ridgedWeight = 0.45f;
+
+        [Tooltip("山脊锐度；越高山脊线越窄越硬。")]
+        [Range(0.5f, 6f)]
+        public float ridgeSharpness = 2.4f;
+
+        [Tooltip("山脊噪声相对基础频率的倍率；越高细节越密。")]
+        public float ridgeFrequencyMultiplier = 1.8f;
+
+        [Tooltip("Domain Warp 坐标扰动强度（米）；让山脉走势弯曲、避免规则噪声感。")]
+        [Range(0f, 128f)]
+        public float domainWarpStrength = 28f;
+
+        [Tooltip("Domain Warp 坐标扰动频率；通常低于或接近基础地形频率。")]
+        [Range(0.0001f, 0.05f)]
+        public float domainWarpFrequency = 0.006f;
+
         [Header("Biome")]
         [Tooltip("Biome 场的频率（远小于地形频率，宏观分区）。")]
         public float biomeFrequency = 0.0025f;
@@ -88,13 +108,17 @@ namespace PCGLand
 
         [Tooltip("寒冷处草地偏向岩石的强度。")]
         [Range(0f, 1f)]
-        public float coldRockBias = 0.8f;
+        public float coldRockBias = 0.35f;
 
         [Tooltip("地形起伏归一化系数（fBm 噪声的典型峰值幅度，约 0.3~0.6）。\n用它把相对高度归一到 [-1,1] 再分带；越小则雪/沙等极端带越容易出现。")]
         [Range(0.1f, 1f)]
-        public float reliefNormalize = 0.5f;
+        public float reliefNormalize = 0.85f;
 
         [Header("碰撞（扩展点，默认关闭）")]
         public bool generateColliders = false;
+
+        [Header("调试")]
+        [Tooltip("以体素方块（Minecraft 风格立方体）替代平滑等值面渲染，用于直观查看底层体素网格。\n按 cell 中心是否实心生成立方体，仅输出朝向空气的外表面。运行时切换会触发整体重建。")]
+        public bool debugVoxelBlocks = false;
     }
 }

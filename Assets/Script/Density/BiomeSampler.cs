@@ -26,6 +26,8 @@ namespace PCGLand
         private readonly float _coldRockBias;
         private readonly float _reliefNormalize;
 
+        private const float HeightBlendWidth = 0.18f;
+
         public BiomeSampler(WorldSettings settings)
         {
             uint s = (uint)settings.seed;
@@ -87,22 +89,24 @@ namespace PCGLand
                 : 0f;
 
             // 高海拔：雪/岩；中海拔：草/森林；低洼：沙
-            Color baseCol;
-            if (rel > _snowRockHeight)
-            {
-                baseCol = Color.Lerp(_rock, _snow, Mathf.InverseLerp(_snowRockHeight, 1f, rel) * temp);
-            }
-            else if (rel < _sandHeight)
-            {
-                baseCol = _sand;
-            }
-            else
-            {
-                baseCol = Color.Lerp(_grass, _forest, moist);
-                // 寒冷处草地偏向岩石
-                baseCol = Color.Lerp(baseCol, _rock, Mathf.Clamp01(0.5f - temp) * _coldRockBias);
-            }
-            return baseCol;
+            Color vegetation = Color.Lerp(_grass, _forest, moist);
+            float coldRock = Smooth01(0.5f, 0f, temp) * _coldRockBias;
+            vegetation = Color.Lerp(vegetation, _rock, coldRock);
+
+            float sandMask = 1f - Smooth01(_sandHeight - HeightBlendWidth, _sandHeight + HeightBlendWidth, rel);
+            Color lowColor = Color.Lerp(vegetation, _sand, sandMask);
+
+            float highMask = Smooth01(_snowRockHeight - HeightBlendWidth, _snowRockHeight + HeightBlendWidth, rel);
+            float snowMask = Smooth01(_snowRockHeight + HeightBlendWidth * 0.5f, 1f, rel) * Mathf.Lerp(1f, 0.45f, temp);
+            Color highColor = Color.Lerp(_rock, _snow, snowMask);
+
+            return Color.Lerp(lowColor, highColor, highMask);
+        }
+
+        private static float Smooth01(float edge0, float edge1, float value)
+        {
+            float t = Mathf.InverseLerp(edge0, edge1, value);
+            return Mathf.SmoothStep(0f, 1f, t);
         }
     }
 }
